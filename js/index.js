@@ -20,6 +20,7 @@ async function getImages() {
 
 function populateGallery(json){
     if (!json || json.length === 0) return;
+    console.log(json)
     GALLERY_CONTAINER.innerHTML=''
     for(let i = 0; i < json.length; i++){
         let item = json[i]
