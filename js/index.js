@@ -25,7 +25,7 @@ function populateGallery(json){
     for(let i = 0; i < json.length; i++){
         let item = json[i]
         const FIGURE_TEMPLATE = `
-        <figure>
+        <figure data-filter="${item.categoryId}">
             <img src="${item.imageUrl}" alt="Abajour Tahina"/>
             <figcaption>${item.title}</figcaption>
         </figure>
