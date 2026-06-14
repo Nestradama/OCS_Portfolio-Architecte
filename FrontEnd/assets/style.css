@@ -137,31 +137,31 @@ li:hover {
 	width: 100%;
 
 }
-#contact {
+#contact, #login_section {
 	width: 50%;
-margin: auto;
+	margin: auto;
 }
-#contact > * {
+#contact > * , #login_section > *{
 	text-align: center;
 
 }
-#contact h2{
+#contact h2, #login_section h2{
 	margin-bottom: 20px;
 }
-#contact form {
+#contact form, #login_section form{
 	text-align: left;
 	margin-top:30px;
 	display: flex;
 	flex-direction: column;
 }
 
-#contact input {
+#contact input, #login_section input{
 	height: 50px;
 	font-size: 1.2em;
 	border: none;
 	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
 }
-#contact label {
+#contact label, #login_section label{
 	margin: 2em 0 1em 0;
 }
 #contact textarea {
@@ -187,7 +187,18 @@ footer nav ul {
 }
 
 
+
 /*USER STYLE*/
+
+body{
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+a{
+	text-decoration: none;
+	color: inherit;
+}
 
 .filter-group {
 	display: flex;
@@ -217,4 +228,31 @@ footer nav ul {
 .filter-btn.active {
 	background-color: #1D6154;
 	color: #FFFFFF;
+}
+
+
+#login_section h1{
+	font-weight: 700;
+	font-size: 30px;
+}
+
+#login_section input[type=submit]{
+	width: 179px;
+	height: 36px;
+	box-sizing: border-box;
+	font-size: 14px;
+}
+
+.reset-container {
+	text-align: center;
+	width: 100%;
+	margin-top: 15px;
+}
+
+#password_reset {
+	text-decoration: underline;
+	color: inherit;
+}
+footer{
+	margin-top: auto;
 }
