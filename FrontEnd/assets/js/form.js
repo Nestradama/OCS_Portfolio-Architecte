@@ -1,4 +1,6 @@
 const API_URL = "http://localhost:5678/api"
+const LOGIN_ERROR_CONTAINER = document.querySelector('#login_error_container')
+const LOGIN_BUTTON = document.querySelector('#login_button')
 
 document.querySelector('#login_form').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -22,6 +24,18 @@ document.querySelector('#login_form').addEventListener('submit', function(event)
             if (response.ok) {
                 return response.json();
             } else {
+                LOGIN_BUTTON.disabled=true;
+                LOGIN_ERROR_CONTAINER.style.padding="1rem";
+                LOGIN_ERROR_CONTAINER.style.height="auto";
+
+                setTimeout(function(){
+                    LOGIN_ERROR_CONTAINER.style.padding=0;
+                    LOGIN_ERROR_CONTAINER.style.height=0;
+
+                    LOGIN_BUTTON.disabled=false;
+
+                    },3000)
+
                 throw new Error("Erreur dans l’identifiant ou le mot de passe");
             }
         })
