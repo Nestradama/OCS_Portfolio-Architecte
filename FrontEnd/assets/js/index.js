@@ -41,7 +41,7 @@ function populateGallery(json){
     for(let i = 0; i < json.length; i++){
         let item = json[i];
         const FIGURE_TEMPLATE = `
-        <figure data-filter="${item.categoryId}">
+        <figure data-filter="${item.categoryId}" data-id="${item.id}">
             <img src="${item.imageUrl}" alt="${item.title}"/>
             <figcaption>${item.title}</figcaption>
         </figure>
