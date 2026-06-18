@@ -1,60 +1,37 @@
 let modal = null;
 
-async function fetchWorksForModal() {
-    try {
-        const response = await fetch(`${API_URL}/works`);
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Failure fetch works:", error);
-        return [];
-    }
+//Core
+
+async function openModal(e) {
+    e.preventDefault();
+    if (modal) return;
+
+    modal = await createModal();
+    modal.style.display = 'flex';
+
+    modal.querySelectorAll('.close-button').forEach(btn => {
+        btn.addEventListener('click', closeModal);
+    });
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal();
+    });
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeModal();
+    });
 }
 
-async function fetchCategories() {
-    try {
-        const response = await fetch(`${API_URL}/categories`);
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Failure fetch categories:", error);
-        return [];
-    }
-}
-
-async function deleteWork(workId) {
-    const token = window.localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-        const response = await fetch(`${API_URL}/works/${workId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            const modalImageToRemove = document.querySelector(`.modal-image-container[data-id='${workId}']`);
-            if (modalImageToRemove) modalImageToRemove.remove();
-
-            const galleryImageToRemove = document.querySelector(`#gallery_container figure[data-id='${workId}']`);
-            if (galleryImageToRemove) galleryImageToRemove.remove();
-        }
-    } catch (error) {
-        console.error("Error deleting work:", error);
-    }
+function closeModal() {
+    if (!modal) return;
+    modal.remove();
+    modal = null;
 }
 
 async function createModal() {
-    const works = await fetchWorksForModal();
-    const categories = await fetchCategories();
+    const works = await getWorks();
+    const categories = await getCategories();
 
     const modalHTML = `
+        <!-- Gallery View -->
         <div class="modal-content" id="modal-gallery-view">
             <span class="close-button">&times;</span>
             <h2>Galerie photo</h2>
@@ -72,6 +49,7 @@ async function createModal() {
             <button class="add-photo-button">Ajouter une photo</button>
         </div>
 
+        <!-- Add Photo View -->
         <div class="modal-content" id="modal-add-view" style="display: none;">
             <span class="back-button"><i class="fa-solid fa-arrow-left"></i></span>
             <span class="close-button">&times;</span>
@@ -111,25 +89,12 @@ async function createModal() {
     return modalWrapper;
 }
 
+// Listener & Logic
+
 function setupModalListeners(modalWrapper) {
     const galleryView = modalWrapper.querySelector('#modal-gallery-view');
     const addView = modalWrapper.querySelector('#modal-add-view');
     
-    function setupDeleteListeners() {
-        modalWrapper.querySelectorAll('.trash-icon-background').forEach(icon => {
-            // Remove old listener to prevent duplicates
-            const newIcon = icon.cloneNode(true);
-            icon.parentNode.replaceChild(newIcon, icon);
-            
-            newIcon.addEventListener('click', (e) => {
-                const container = e.target.closest('.modal-image-container');
-                const workId = container.dataset.id;
-                deleteWork(workId);
-            });
-        });
-    }
-    setupDeleteListeners();
-
     modalWrapper.querySelector('.add-photo-button').addEventListener('click', () => {
         galleryView.style.display = 'none';
         addView.style.display = 'flex';
@@ -140,6 +105,12 @@ function setupModalListeners(modalWrapper) {
         galleryView.style.display = 'flex';
     });
 
+    setupDeleteListeners(modalWrapper);
+
+    setupAddPhotoForm(modalWrapper);
+}
+
+function setupAddPhotoForm(modalWrapper) {
     const form = modalWrapper.querySelector('#add-photo-form');
     const photoInput = form.querySelector('#photo-input');
     const previewImg = form.querySelector('.preview');
@@ -148,8 +119,9 @@ function setupModalListeners(modalWrapper) {
     const validerBtn = form.querySelector('.valider-button');
     const addPhotoAreaElements = form.querySelectorAll('.add-photo-area i, .add-photo-area label, .add-photo-area p');
 
-    photoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
+    // Image Preview Logic
+    photoInput.addEventListener('change', () => {
+        const file = photoInput.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -166,94 +138,77 @@ function setupModalListeners(modalWrapper) {
         }
     });
 
-    function checkFormValidity() {
+    //Form du "Ajouter une image"
+    const checkFormValidity = () => {
         validerBtn.disabled = !(photoInput.files.length > 0 && titleInput.value.trim() !== '' && categorySelect.value !== '');
-    }
-
+    };
     titleInput.addEventListener('input', checkFormValidity);
     categorySelect.addEventListener('change', checkFormValidity);
 
+    // Form Submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const token = window.localStorage.getItem("token");
-        if (!token) return;
-
         const formData = new FormData();
         formData.append('image', photoInput.files[0]);
         formData.append('title', titleInput.value);
         formData.append('category', categorySelect.value);
 
-        try {
-            const response = await fetch(`${API_URL}/works`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
+        const newWork = await addWork(formData);
 
-            if (response.ok) {
-                form.reset();
-                previewImg.style.display = 'none';
-                previewImg.src = '';
-                addPhotoAreaElements.forEach(el => el.style.display = '');
-                validerBtn.disabled = true;
-
-                if (typeof init === 'function') {
-                    await init();
-                }
-
-                const newWorks = await fetchWorksForModal();
-                const modalGallery = modalWrapper.querySelector('.modal-gallery');
-                modalGallery.innerHTML = newWorks.map(work => `
-                    <div class="modal-image-container" data-id="${work.id}">
-                        <img src="${work.imageUrl}" alt="${work.title}">
-                        <div class="trash-icon-background">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </div>
-                    </div>
-                `).join('');
-                setupDeleteListeners();
-
-
-            } else {
-                console.error("Failed to add work:", response.status);
-            }
-        } catch (error) {
-            console.error("Error adding work:", error);
+        if (newWork) {
+            form.reset();
+            previewImg.style.display = 'none';
+            previewImg.src = '';
+            addPhotoAreaElements.forEach(el => el.style.display = '');
+            validerBtn.disabled = true;
+            
+            await refreshGalleries(modalWrapper);
         }
     });
 }
 
-async function openModal(e) {
-    e.preventDefault();
-    if (modal) return;
 
-    modal = await createModal();
-    modal.style.display = 'flex';
-
-    modal.querySelectorAll('.close-button').forEach(btn => {
-        btn.addEventListener('click', closeModal);
+function setupDeleteListeners(modalWrapper) {
+    modalWrapper.querySelectorAll('.trash-icon-background').forEach(icon => {
+        icon.addEventListener('click', (e) => {
+            const container = e.target.closest('.modal-image-container');
+            const workId = container.dataset.id;
+            handleDeleteWork(workId);
+        });
     });
+}
+
+// Data & DOM Manips
+
+async function handleDeleteWork(workId) {
+    const success = await deleteWork(workId);
     
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
-    
-    window.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            closeModal();
-        }
-    });
+    if (success) {
+        document.querySelector(`.modal-image-container[data-id='${workId}']`)?.remove();
+        document.querySelector(`#gallery_container figure[data-id='${workId}']`)?.remove();
+    }
 }
 
-function closeModal() {
-    if (!modal) return;
-    modal.remove();
-    modal = null;
-    window.removeEventListener('keydown', closeModal);
+async function refreshGalleries(modalWrapper) {
+    if (typeof init === 'function') {
+        await init();
+    }
+
+    const newWorks = await getWorks();
+    const modalGallery = modalWrapper.querySelector('.modal-gallery');
+    modalGallery.innerHTML = newWorks.map(work => `
+        <div class="modal-image-container" data-id="${work.id}">
+            <img src="${work.imageUrl}" alt="${work.title}">
+            <div class="trash-icon-background">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+        </div>
+    `).join('');
+    setupDeleteListeners(modalWrapper);
 }
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const modifierLink = document.querySelector('.modifier-link');

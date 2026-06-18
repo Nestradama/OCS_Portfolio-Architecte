@@ -400,6 +400,7 @@ a{
     justify-content: flex-start;
     overflow-y: auto;
     flex-grow: 1;
+    align-content: flex-start;
 }
 
 .modal-gallery::-webkit-scrollbar {

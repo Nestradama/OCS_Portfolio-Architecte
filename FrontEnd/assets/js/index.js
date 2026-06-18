@@ -1,4 +1,3 @@
-const API_URL = "http://localhost:5678/api";
 const GALLERY_CONTAINER = document.getElementById("gallery_container");
 
 function checkLoginStatus() {
@@ -21,20 +20,6 @@ function checkLoginStatus() {
     }
 }
 
-async function getImages() {
-    try {
-        const response = await fetch(API_URL + "/works");
-        if (!response.ok) {
-            console.error(`Response status: ${response.status}`);
-            return [];
-        }
-        return await response.json();
-    } catch (e) {
-        console.log(e);
-        return [];
-    }
-}
-
 function populateGallery(json){
     if (!json || json.length === 0) return;
     GALLERY_CONTAINER.innerHTML='';
@@ -52,7 +37,7 @@ function populateGallery(json){
 
 async function init() {
     if (GALLERY_CONTAINER) {
-        const data = await getImages();
+        const data = await getWorks();
         populateGallery(data);
     }
     checkLoginStatus(); 
