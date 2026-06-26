@@ -1,14 +1,16 @@
-const FILTERS = document.querySelectorAll('.filter-btn');
+function initFilters() {
+    const FILTERS = document.querySelectorAll('.filter-btn');
 
-FILTERS.forEach(filter => {
-    filter.addEventListener('click', () => {
-        FILTERS.forEach(button => {
-            button.classList.remove('active');
+    FILTERS.forEach(filter => {
+        filter.addEventListener('click', () => {
+            FILTERS.forEach(button => {
+                button.classList.remove('active');
+            });
+            filter.classList.add('active');
+            filterGallery(filter.dataset.filter);
         });
-        filter.classList.add('active');
-        filterGallery(filter.dataset.filter);
     });
-});
+}
 
 function filterGallery(selectedCategory) {
     const figures = GALLERY_CONTAINER.querySelectorAll('figure');

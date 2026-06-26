@@ -1,5 +1,7 @@
 const GALLERY_CONTAINER = document.getElementById("gallery_container");
 
+
+//Used to swap between Guest and User UI
 function checkLoginStatus() {
     const token = window.localStorage.getItem("token");
     const userElements = document.querySelectorAll(".user_elements");
@@ -35,10 +37,30 @@ function populateGallery(json){
     }
 }
 
+function populateFilters(categories) {
+    const filterContainer = document.querySelector(".filter-group");
+    if (!filterContainer) return;
+
+    const categoriesHTML = categories.map(category => `
+        <button class="filter-btn" data-filter="${category.id}">
+            ${category.name}
+        </button>
+    `).join('');
+
+    filterContainer.innerHTML = `
+        <button class="filter-btn active" data-filter="all">Tous</button>
+        ${categoriesHTML}
+    `;
+}
+
 async function init() {
     if (GALLERY_CONTAINER) {
         const data = await getWorks();
         populateGallery(data);
+
+        const filtersCategory = await getCategories()
+        populateFilters(filtersCategory)
+        initFilters()
     }
     checkLoginStatus(); 
 }

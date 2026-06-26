@@ -138,7 +138,7 @@ function setupAddPhotoForm(modalWrapper) {
         }
     });
 
-    //Form du "Ajouter une image"
+    //Form "Ajouter une image"
     const checkFormValidity = () => {
         validerBtn.disabled = !(photoInput.files.length > 0 && titleInput.value.trim() !== '' && categorySelect.value !== '');
     };
@@ -149,7 +149,7 @@ function setupAddPhotoForm(modalWrapper) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData();
+        const formData = new FormData(); // FormData for Binary files
         formData.append('image', photoInput.files[0]);
         formData.append('title', titleInput.value);
         formData.append('category', categorySelect.value);
