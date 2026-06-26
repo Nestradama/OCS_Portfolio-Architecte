@@ -75,3 +75,16 @@ async function addWork(formData) {
         return null;
     }
 }
+
+function logout() {
+    localStorage.removeItem('token')
+    window.location.href = "./index.html"
+}
+
+const logoutButton = document.getElementById('button_logout')
+if (logoutButton){
+    logoutButton.addEventListener('click', (event) =>{
+        event.preventDefault()
+        logout()
+    })
+}
